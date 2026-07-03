@@ -292,6 +292,88 @@ def get_hospitales():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al leer hospitales: {str(e)}")
 
+class CamasEmergenciaUpdate(BaseModel):
+    camas_emergencia_disponibles: int = Field(..., ge=0, description="Número de camas desocupadas actualmente")
+
+@app.post("/api/hospitales/{hospital_id}/camas")
+def update_camas_emergencia(hospital_id: int, payload: CamasEmergenciaUpdate):
+    """
+    Updates the available emergency beds count for a specific hospital in the GeoJSON file.
+    """
+    geojson_path = "geojson/hospitales_sucre.geojson"
+    try:
+        with open(geojson_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            
+        hospital_found = None
+        for feature in data.get("features", []):
+            if feature["properties"].get("id") == hospital_id:
+                hospital_found = feature
+                break
+                
+        if not hospital_found:
+            raise HTTPException(status_code=404, detail=f"Hospital con ID {hospital_id} no encontrado.")
+            
+        props = hospital_found["properties"]
+        totales = props.get("camas_emergencia_totales", 0)
+        disponibles = payload.camas_emergencia_disponibles
+        
+        if disponibles > totales:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Las camas disponibles ({disponibles}) no pueden exceder las camas de emergencia totales ({totales})."
+            )
+            
+        props["camas_emergencia_disponibles"] = disponibles
+        
+        with open(geojson_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+            
+        return {"status": "success", "hospital": props["nombre"], "camas_emergencia_disponibles": disponibles}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al actualizar camas de emergencia: {str(e)}")
+
+@app.post("/api/hospitales/simular")
+def simulate_camas_emergencia():
+    """
+    Simulates real-time telemetry changes by randomly fluctuating available emergency beds 
+    by +/- 1 or 2 (staying within [0, total_emergency_beds] limits) for all hospitals.
+    """
+    import random
+    geojson_path = "geojson/hospitales_sucre.geojson"
+    try:
+        with open(geojson_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            
+        updates = []
+        for feature in data.get("features", []):
+            props = feature["properties"]
+            totales = props.get("camas_emergencia_totales", 0)
+            if totales == 0:
+                continue
+            disponibles = props.get("camas_emergencia_disponibles", 0)
+            
+            # Fluctuate by -2, -1, 0, 1, 2
+            delta = random.choice([-2, -1, 0, 1, 2])
+            new_disponibles = max(0, min(totales, disponibles + delta))
+            
+            props["camas_emergencia_disponibles"] = new_disponibles
+            updates.append({
+                "id": props.get("id"),
+                "nombre": props.get("nombre"),
+                "camas_emergencia_totales": totales,
+                "camas_emergencia_disponibles": new_disponibles
+            })
+            
+        with open(geojson_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+            
+        return {"status": "success", "updates": updates}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error en la simulación de telemetría: {str(e)}")
+
 @app.get("/api/vias")
 def get_vias():
     """Returns the WGS84 layer of main roads."""

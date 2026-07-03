@@ -129,5 +129,31 @@ class TestServer(unittest.TestCase):
         response = self.client.get("/api/zonas/restringidas?escenario=invalid")
         self.assertEqual(response.status_code, 400)
 
+    def test_update_camas_emergencia_success(self):
+        payload = {"camas_emergencia_disponibles": 5}
+        response = self.client.post("/api/hospitales/1/camas", json=payload)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["status"], "success")
+        self.assertEqual(data["camas_emergencia_disponibles"], 5)
+
+    def test_update_camas_emergencia_exceed_total(self):
+        payload = {"camas_emergencia_disponibles": 30}
+        response = self.client.post("/api/hospitales/1/camas", json=payload)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("no pueden exceder", response.json()["detail"])
+
+    def test_update_camas_emergencia_invalid_id(self):
+        payload = {"camas_emergencia_disponibles": 5}
+        response = self.client.post("/api/hospitales/999/camas", json=payload)
+        self.assertEqual(response.status_code, 404)
+
+    def test_simulate_camas_emergencia(self):
+        response = self.client.post("/api/hospitales/simular")
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["status"], "success")
+        self.assertTrue(len(data["updates"]) > 0)
+
 if __name__ == '__main__':
     unittest.main()

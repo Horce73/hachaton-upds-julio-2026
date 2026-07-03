@@ -63,6 +63,29 @@ function getTerrainStyle(feature) {
     };
 }
 
+// Styling function for topography contour lines based on elevation and active theme
+function getTopografiaStyle(feature) {
+    const elev = Number(feature.properties.ELEV || 0);
+    const minElev = 2600;
+    const maxElev = 3100;
+
+    // Map elevation range [2600m, 3100m] to hue range [140 (soft green) down to 0 (soft red)]
+    const pct = Math.max(0, Math.min(1, (elev - minElev) / (maxElev - minElev)));
+    let hue = 140 - (pct * 140);
+    if (hue < 0) hue += 360;
+
+    const isLight = document.body.classList.contains('light-theme');
+    const lightness = isLight ? '45%' : '75%';
+    const saturation = isLight ? '65%' : '80%';
+
+    return {
+        color: `hsl(${hue}, ${saturation}, ${lightness})`,
+        weight: 1.2,
+        opacity: 0.45
+    };
+}
+
+
 function getHospitalCoverageConfig(nivel) {
     if (nivel >= 3) {
         return {
@@ -105,7 +128,7 @@ function initMap() {
 
     // Load light or dark tiles based on active theme
     const isLight = document.body.classList.contains('light-theme');
-    const tileUrl = isLight 
+    const tileUrl = isLight
         ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
         : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
 
@@ -129,7 +152,10 @@ async function loadLayers() {
                     weight: 2.5,
                     opacity: 0.6
                 }
-            }).addTo(map);
+            });
+            if (document.getElementById('toggle-vias').classList.contains('active')) {
+                layers.vias.addTo(map);
+            }
         }
 
         // 2. Elevation contours (Topografía)
@@ -137,16 +163,11 @@ async function loadLayers() {
         if (topoRes.ok) {
             const topoData = await topoRes.json();
             layers.topografia = L.geoJSON(topoData, {
-                style: function(feature) {
-                    // Render contour lines with subtle color based on elevation
-                    const elev = feature.properties.ELEV;
-                    return {
-                        color: elev > 2800 ? '#475569' : '#334155',
-                        weight: 0.8,
-                        opacity: 0.4
-                    };
-                }
-            }).addTo(map);
+                style: getTopografiaStyle
+            });
+            if (document.getElementById('toggle-topografia').classList.contains('active')) {
+                layers.topografia.addTo(map);
+            }
         }
 
         // 3. Sucre District Boundaries
@@ -154,7 +175,7 @@ async function loadLayers() {
         if (distritosRes.ok) {
             const distritosData = await distritosRes.json();
             layers.distritos = L.geoJSON(distritosData, {
-                style: function(feature) {
+                style: function (feature) {
                     // Colors districts by estimated population density / growth pressure
                     const cod = feature.properties.COD;
                     let fillColor = '#1E293B';
@@ -163,7 +184,7 @@ async function loadLayers() {
                     if (cod === 'D-4') fillColor = '#0369A1'; // West
                     if (cod === 'D-2') fillColor = '#0F766E'; // Medium
                     if (cod === 'D-1') fillColor = '#374151'; // Central
-                    
+
                     return {
                         fillColor: fillColor,
                         weight: 1.5,
@@ -172,20 +193,23 @@ async function loadLayers() {
                         fillOpacity: 0.25
                     };
                 },
-                onEachFeature: function(feature, layer) {
+                onEachFeature: function (feature, layer) {
                     const props = feature.properties;
                     const popupContent = `
                         <div class="custom-popup">
                             <h4 class="popup-title">${props.nombre || props.Distritos}</h4>
                             <p class="popup-detail"><strong>Población:</strong> ${props.poblacion_estimada.toLocaleString()} hab</p>
-                            <p class="popup-detail"><strong>Crecimiento:</strong> ${(props.crecimiento_anual*100).toFixed(1)}% anual</p>
-                            <p class="popup-detail"><strong>Cobertura Básica:</strong> ${(props.servicios_basicos_pct*100).toFixed(0)}%</p>
+                            <p class="popup-detail"><strong>Crecimiento:</strong> ${(props.crecimiento_anual * 100).toFixed(1)}% anual</p>
+                            <p class="popup-detail"><strong>Cobertura Básica:</strong> ${(props.servicios_basicos_pct * 100).toFixed(0)}%</p>
                             <p class="popup-detail"><strong>Camas Existentes:</strong> ${props.camas_actuales} camas</p>
                         </div>
                     `;
                     layer.bindPopup(popupContent, { className: 'custom-popup' });
                 }
-            }).addTo(map);
+            });
+            if (document.getElementById('toggle-distritos').classList.contains('active')) {
+                layers.distritos.addTo(map);
+            }
         }
 
         // 4. Existing Hospitals Layer (Red de Salud)
@@ -194,7 +218,9 @@ async function loadLayers() {
             rawHospitalesData = await hospitalesRes.json();
             layers.coberturaHospitalaria = L.layerGroup();
             filterHospitalesBySpecialty("");
-            layers.coberturaHospitalaria.addTo(map);
+            if (document.getElementById('toggle-cobertura-hospitalaria').classList.contains('active')) {
+                layers.coberturaHospitalaria.addTo(map);
+            }
         }
 
         // 5. Unified coverage analysis (union polygons + uncovered areas)
@@ -252,8 +278,8 @@ async function loadLayers() {
             const terrenosData = await terrenosRes.json();
             layers.terrenos = L.geoJSON(terrenosData, {
                 style: getTerrainStyle,
-                onEachFeature: function(feature, layer) {
-                    layer.on('click', function(e) {
+                onEachFeature: function (feature, layer) {
+                    layer.on('click', function (e) {
                         L.DomEvent.stopPropagation(e);
                         selectTerrainFeature(feature);
                     });
@@ -326,13 +352,13 @@ async function loadDeficitData() {
 // Display selected terrain details in the side panel card
 function selectTerrainFeature(feature) {
     selectedTerrain = feature;
-    
+
     // Show results panel
     document.getElementById('results-panel').classList.remove('hidden');
-    
+
     const props = feature.properties;
     const evalRes = props.evaluacion;
-    
+
     // Update textual properties safely (textContent prevents XSS)
     document.getElementById('selected-name').textContent = props.nombre || "Terreno Candidato";
     document.getElementById('detail-distrito').textContent = evalRes.distrito_nombre;
@@ -341,12 +367,12 @@ function selectTerrainFeature(feature) {
     document.getElementById('detail-superficie').textContent = `${Math.round(evalRes.area_m2).toLocaleString()} m²`;
     document.getElementById('detail-vias').textContent = `${Math.round(evalRes.distancia_vias_m)} m`;
     document.getElementById('detail-hospitales').textContent = `${Math.round(evalRes.distancia_hosp_m)} m`;
-    
+
     // Update ML Prediction display securely
     const mlRow = document.getElementById('ml-prediction-row');
     const mlScoreText = document.getElementById('detail-ml-score');
     const mlRes = evalRes.prediccion_ml;
-    
+
     if (mlRes && mlRes.modelo_activo) {
         mlRow.classList.remove('hidden');
         const mlAptoLabel = mlRes.apto_predicho ? "Apto" : "No Apto";
@@ -355,17 +381,17 @@ function selectTerrainFeature(feature) {
     } else {
         mlRow.classList.add('hidden');
     }
-    
+
     // Compute current weight-adjusted IAT client-side
     updateTerrainScoreDisplay(evalRes);
-    
+
     // Handle restrictions warning box
     const restrictionsBox = document.getElementById('restrictions-box');
     const restrictionsList = document.getElementById('restrictions-list');
-    
+
     // Clear list safely
     restrictionsList.replaceChildren();
-    
+
     if (evalRes.restricciones && evalRes.restricciones.length > 0) {
         restrictionsBox.classList.remove('hidden');
         evalRes.restricciones.forEach(r => {
@@ -384,53 +410,53 @@ function updateTerrainScoreDisplay(evalRes) {
     const scores = evalRes.criterios;
     let iatSum = 0.0;
     let weightSum = 0.0;
-    
+
     for (const key in weights) {
         if (key in scores) {
             iatSum += scores[key] * weights[key];
             weightSum += weights[key];
         }
     }
-    
+
     let finalIat = weightSum > 0 ? (iatSum / weightSum) : 0.0;
-    
+
     // If restricted, force score to 0
     const isApto = !evalRes.restricciones || evalRes.restricciones.length === 0;
     if (!isApto) {
         finalIat = 0.0;
     }
-    
+
     // 2. Update Ring Bar Score
     const scoreValText = document.getElementById('score-value');
     scoreValText.textContent = finalIat.toFixed(1);
-    
+
     const circle = document.getElementById('score-ring-bar');
     const radius = circle.r.baseVal.value;
     const circumference = radius * 2 * Math.PI;
     circle.style.strokeDasharray = `${circumference} ${circumference}`;
-    
+
     // Calculate offset
     const offset = circumference - (finalIat / 100) * circumference;
     circle.style.strokeDashoffset = offset;
-    
+
     // Set color based on suitability
     const color = getTerrainColor(finalIat, isApto);
     circle.style.stroke = color;
     scoreValText.style.color = color;
-    
+
     // Update label quality
     const ratingText = document.getElementById('selected-rating');
     const label = !isApto ? "NO RECOMENDABLE (Restricciones)" :
-                  finalIat >= 90 ? "APTITUD EXCELENTE" :
-                  finalIat >= 80 ? "APTITUD MUY BUENA" :
-                  finalIat >= 70 ? "APTITUD ADECUADA" :
-                  finalIat >= 60 ? "APTITUD ACEPTABLE" : "NO RECOMENDABLE";
+        finalIat >= 90 ? "APTITUD EXCELENTE" :
+            finalIat >= 80 ? "APTITUD MUY BUENA" :
+                finalIat >= 70 ? "APTITUD ADECUADA" :
+                    finalIat >= 60 ? "APTITUD ACEPTABLE" : "NO RECOMENDABLE";
     ratingText.textContent = label;
     ratingText.style.color = color;
-    
+
     // 3. Update Radar Chart
     updateChart(scores);
-    
+
     // 4. Update Justification details
     // If it's a dynamic weight calculation, keep it simple. Otherwise, render default or dynamic explanation
     const expText = document.getElementById('selected-explanation');
@@ -441,10 +467,10 @@ function updateTerrainScoreDisplay(evalRes) {
         const points = [];
         if (evalRes.pendiente_pct < 5.0) points.push(`- Topografía óptima, pendiente muy suave de ${evalRes.pendiente_pct}%.`);
         if (scores.crecimiento > 70) points.push(`- Ubicado en zona de alto dinamismo demográfico.`);
-        if (evalRes.distancia_hosp_m > 2000.0) points.push(`- Alta idoneidad para cubrir áreas desabendidas (a ${(evalRes.distancia_hosp_m/1000).toFixed(1)} km de hospitales).`);
+        if (evalRes.distancia_hosp_m > 2000.0) points.push(`- Alta idoneidad para cubrir áreas desabendidas (a ${(evalRes.distancia_hosp_m / 1000).toFixed(1)} km de hospitales).`);
         if (evalRes.distancia_vias_m < 200.0) points.push(`- Rápida conexión a la red vial troncal.`);
         if (scores.infraestructura === 100) points.push(`- Cobertura total de infraestructura de agua, luz y drenajes.`);
-        
+
         expText.textContent = `Aptitud global evaluada con un puntaje de ${finalIat.toFixed(1)}/100.\n\nJustificación técnica:\n` + points.join("\n");
     }
 }
@@ -452,7 +478,7 @@ function updateTerrainScoreDisplay(evalRes) {
 // Chart.js Radar representation of 7 dimensions suitability
 function updateChart(scores) {
     const ctx = document.getElementById('criteriaChart').getContext('2d');
-    
+
     const labels = [
         'Crecimiento',
         'Vías/Acceso',
@@ -462,7 +488,7 @@ function updateChart(scores) {
         'Topografía',
         'Riesgos'
     ];
-    
+
     const data = [
         scores.crecimiento,
         scores.accesibilidad,
@@ -477,7 +503,7 @@ function updateChart(scores) {
     const gridColor = isLight ? 'rgba(15, 23, 42, 0.08)' : 'rgba(255, 255, 255, 0.1)';
     const angleColor = isLight ? 'rgba(15, 23, 42, 0.08)' : 'rgba(255, 255, 255, 0.1)';
     const labelColor = isLight ? '#475569' : '#94A3B8';
-    
+
     if (criteriaChart) {
         criteriaChart.data.datasets[0].data = data;
         criteriaChart.options.scales.r.grid.color = gridColor;
@@ -531,11 +557,11 @@ function updateChart(scores) {
 // Recalculates IAT on all loaded terrains when sliders adjust
 function recalculateAllTerrains() {
     if (!layers.terrenos) return;
-    
+
     layers.terrenos.eachLayer(layer => {
         const feature = layer.feature;
         const evalRes = feature.properties.evaluacion;
-        
+
         // Recalculate
         const scores = evalRes.criterios;
         let iatSum = 0.0;
@@ -546,20 +572,20 @@ function recalculateAllTerrains() {
                 weightSum += weights[key];
             }
         }
-        
+
         let newIat = weightSum > 0 ? (iatSum / weightSum) : 0.0;
         const isApto = !evalRes.restricciones || evalRes.restricciones.length === 0;
         if (!isApto) newIat = 0.0;
-        
+
         // Update feature properties
         feature.properties.iat = newIat;
-        
+
         // Repaint layer
         layer.setStyle({
             fillColor: getTerrainColor(newIat, isApto)
         });
     });
-    
+
     // Update selected display if any
     if (selectedTerrain) {
         updateTerrainScoreDisplay(selectedTerrain.properties.evaluacion);
@@ -569,21 +595,21 @@ function recalculateAllTerrains() {
 // Synchronize weights and validate sum to 100%
 function setupWeightSliders() {
     const sliderKeys = [
-        'crecimiento', 'accesibilidad', 'cobertura', 
+        'crecimiento', 'accesibilidad', 'cobertura',
         'infraestructura', 'uso_suelo', 'topografia', 'riesgos'
     ];
-    
+
     sliderKeys.forEach(key => {
         const input = document.getElementById(`weight-${key}`);
         const output = document.getElementById(`weight-${key}-val`);
-        
-        input.addEventListener('input', function() {
+
+        input.addEventListener('input', function () {
             output.textContent = `${this.value}%`;
             weights[key] = parseFloat(this.value) / 100.0;
-            
+
             // Recalculate Sum
             updateWeightsTotalSum();
-            
+
             // Recalculate candidate properties dynamically
             recalculateAllTerrains();
         });
@@ -593,16 +619,16 @@ function setupWeightSliders() {
 function updateWeightsTotalSum() {
     let sum = 0;
     const sliderKeys = [
-        'crecimiento', 'accesibilidad', 'cobertura', 
+        'crecimiento', 'accesibilidad', 'cobertura',
         'infraestructura', 'uso_suelo', 'topografia', 'riesgos'
     ];
     sliderKeys.forEach(k => {
         sum += parseInt(document.getElementById(`weight-${k}`).value);
     });
-    
+
     const indicator = document.getElementById('total-weight-indicator');
     indicator.textContent = `${sum}%`;
-    
+
     if (sum === 100) {
         indicator.className = 'weight-valid';
     } else {
@@ -613,26 +639,27 @@ function updateWeightsTotalSum() {
 // Setup custom evaluation mode (click-to-evaluate)
 function setupCustomEvaluation() {
     const btn = document.getElementById('btn-custom-mode');
-    
-    btn.addEventListener('click', function() {
+
+    btn.addEventListener('click', function () {
         customEvaluationMode = !customEvaluationMode;
-        
+
         if (customEvaluationMode) {
             btn.classList.add('btn-active-custom');
             btn.innerHTML = `<i class="fa-solid fa-circle-dot"></i> Haz clic en el Mapa...`;
             document.getElementById('map').style.cursor = 'crosshair';
+            document.getElementById('map').classList.add('custom-evaluating-active');
         } else {
             resetCustomEvaluationMode();
         }
     });
-    
+
     // Map click handler
-    map.on('click', async function(e) {
+    map.on('click', async function (e) {
         if (!customEvaluationMode) return;
-        
+
         const lat = e.latlng.lat;
         const lon = e.latlng.lng;
-        
+
         // Construct evaluation payload
         const payload = {
             geometry: {
@@ -651,27 +678,27 @@ function setupCustomEvaluation() {
             },
             nombre: "Terreno Personalizado"
         };
-        
+
         try {
             const response = await fetch('/api/evaluar', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
-            
+
             if (!response.ok) {
                 const errData = await response.json();
                 alert(`Error en evaluación: ${errData.detail}`);
                 return;
             }
-            
+
             const result = await response.json();
-            
+
             // Remove previous marker if exists
             if (customMarker) {
                 map.removeLayer(customMarker);
             }
-            
+
             // Create nice looking circle marker on click location
             const color = getTerrainColor(result.iat, result.apto);
             const isLight = document.body.classList.contains('light-theme');
@@ -683,10 +710,10 @@ function setupCustomEvaluation() {
                 opacity: 1,
                 fillOpacity: 0.95
             }).addTo(map);
-            
+
             // Focus map on evaluated terrain
             map.panTo([lat, lon]);
-            
+
             // Create mock feature to load selection details
             const mockFeature = {
                 properties: {
@@ -695,10 +722,10 @@ function setupCustomEvaluation() {
                 },
                 geometry: payload.geometry
             };
-            
+
             // Load and update sidebar displays
             selectTerrainFeature(mockFeature);
-            
+
         } catch (error) {
             console.error("Error al evaluar el terreno: ", error);
             alert("No se pudo conectar con el servidor de evaluación.");
@@ -719,13 +746,13 @@ function resetCustomEvaluationMode() {
 // Setup report export handler
 function setupExportPDF() {
     const btn = document.getElementById('btn-pdf-report');
-    
-    btn.addEventListener('click', async function() {
+
+    btn.addEventListener('click', async function () {
         if (!selectedTerrain) return;
-        
+
         const props = selectedTerrain.properties;
         const evalRes = props.evaluacion;
-        
+
         const payload = {
             geometry: selectedTerrain.geometry,
             properties: {
@@ -740,19 +767,19 @@ function setupExportPDF() {
             },
             nombre: props.nombre
         };
-        
+
         try {
             btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Generando PDF...`;
             btn.disabled = true;
-            
+
             const response = await fetch('/api/reporte/pdf', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
-            
+
             if (!response.ok) throw new Error("Fallo en la generación de PDF");
-            
+
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -762,7 +789,7 @@ function setupExportPDF() {
             a.click();
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url);
-            
+
         } catch (error) {
             console.error("Error al exportar reporte: ", error);
             alert("No se pudo descargar el reporte PDF.");
@@ -777,26 +804,26 @@ function setupExportPDF() {
 function setupThemeToggle() {
     const btn = document.getElementById('btn-theme-toggle');
     if (!btn) return;
-    
+
     // Sync initial button icon based on current class
     const isLight = document.body.classList.contains('light-theme');
     const icon = btn.querySelector('i');
     if (icon) {
         icon.className = isLight ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
     }
-    
-    btn.addEventListener('click', function() {
+
+    btn.addEventListener('click', function () {
         const lightModeActive = document.body.classList.toggle('light-theme');
-        
+
         // Update icon and local storage preference
         if (icon) {
             icon.className = lightModeActive ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
         }
         localStorage.setItem('theme', lightModeActive ? 'light' : 'dark');
-        
+
         // Dynamically update Leaflet map tiles
         if (map && tileLayer) {
-            const newUrl = lightModeActive 
+            const newUrl = lightModeActive
                 ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
                 : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
             tileLayer.setUrl(newUrl);
@@ -805,6 +832,11 @@ function setupThemeToggle() {
         // Redraw terrain layers to apply dynamic stroke colors (white/dark gray)
         if (layers.terrenos) {
             layers.terrenos.setStyle(getTerrainStyle);
+        }
+
+        // Redraw topography layers to apply light/dark theme HSL contour colors
+        if (layers.topografia) {
+            layers.topografia.setStyle(getTopografiaStyle);
         }
 
         // Update active custom marker border color
@@ -843,20 +875,20 @@ function setupLayerToggles() {
         'toggle-crecimiento': 'crecimiento',
         'toggle-restringidas': 'restringidas'
     };
-    
+
     for (const id in toggles) {
         const btn = document.getElementById(id);
         if (!btn) continue;
-        
+
         const layerKey = toggles[id];
-        
-        btn.addEventListener('click', function() {
+
+        btn.addEventListener('click', function () {
             if (!layers[layerKey]) {
                 console.warn(`La capa ${layerKey} aún no se ha cargado.`);
                 return;
             }
             this.classList.toggle('active');
-            
+
             if (this.classList.contains('active')) {
                 map.addLayer(layers[layerKey]);
                 // When coverage is enabled, also show unified coverage + uncovered areas
@@ -885,11 +917,11 @@ window.addEventListener('DOMContentLoaded', async () => {
     setupExportPDF();
     setupLayerToggles();
     setupThemeToggle();
-    
+
     // Bind specialties filter listener
     const specFilter = document.getElementById('filter-especialidad');
     if (specFilter) {
-        specFilter.addEventListener('change', function() {
+        specFilter.addEventListener('change', function () {
             filterHospitalesBySpecialty(this.value);
         });
     }
@@ -897,7 +929,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     // Bind scenario select dropdown listener
     const scenSelect = document.getElementById('select-escenario');
     if (scenSelect) {
-        scenSelect.addEventListener('change', async function() {
+        scenSelect.addEventListener('change', async function () {
             const scen = this.value;
             await reloadGrowthZones(scen);
             await reloadRestrictedZones(scen);
@@ -907,27 +939,27 @@ window.addEventListener('DOMContentLoaded', async () => {
     // Bind Terrain Comparison button list listener
     const btnAddCompare = document.getElementById('btn-add-compare');
     if (btnAddCompare) {
-        btnAddCompare.addEventListener('click', function() {
+        btnAddCompare.addEventListener('click', function () {
             if (!selectedTerrain) {
                 alert("Selecciona primero un terreno para poder compararlo.");
                 return;
             }
-            
+
             const alreadyExists = comparisonList.some(item => {
                 return item.properties.nombre === selectedTerrain.properties.nombre &&
-                       item.geometry.coordinates[0] === selectedTerrain.geometry.coordinates[0];
+                    item.geometry.coordinates[0] === selectedTerrain.geometry.coordinates[0];
             });
-            
+
             if (alreadyExists) {
                 alert("Este terreno ya está agregado al comparador.");
                 return;
             }
-            
+
             if (comparisonList.length >= 3) {
                 alert("Puedes comparar un máximo de 3 terrenos en paralelo.");
                 return;
             }
-            
+
             comparisonList.push(selectedTerrain);
             updateComparisonPanel();
         });
@@ -936,9 +968,36 @@ window.addEventListener('DOMContentLoaded', async () => {
     // Bind close comparison button listener
     const btnCloseCompare = document.getElementById('btn-close-comparison');
     if (btnCloseCompare) {
-        btnCloseCompare.addEventListener('click', function() {
+        btnCloseCompare.addEventListener('click', function () {
             comparisonList = [];
             updateComparisonPanel();
+        });
+    }
+
+    // Bind simulate emergency beds button listener
+    const btnSimEmergency = document.getElementById('btn-simulate-emergency');
+    if (btnSimEmergency) {
+        btnSimEmergency.addEventListener('click', async function () {
+            try {
+                btnSimEmergency.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Simulando...';
+                btnSimEmergency.disabled = true;
+
+                const res = await fetch('/api/hospitales/simular', { method: 'POST' });
+                if (res.ok) {
+                    const hospRes = await fetch('/api/hospitales');
+                    if (hospRes.ok) {
+                        rawHospitalesData = await hospRes.json();
+                        const specSelect = document.getElementById('filter-especialidad');
+                        const activeSpec = specSelect ? specSelect.value : "";
+                        filterHospitalesBySpecialty(activeSpec);
+                    }
+                }
+            } catch (error) {
+                console.error("Error al simular camas de emergencia: ", error);
+            } finally {
+                btnSimEmergency.innerHTML = '<i class="fa-solid fa-wifi"></i> Simular Telemetría (Live)';
+                btnSimEmergency.disabled = false;
+            }
         });
     }
 });
@@ -960,7 +1019,7 @@ async function reloadGrowthZones(escenario = "moderado") {
                     fillColor: '#4F46E5',
                     fillOpacity: 0.18
                 },
-                onEachFeature: function(feature, layer) {
+                onEachFeature: function (feature, layer) {
                     const props = feature.properties;
                     layer.bindPopup(`
                         <div class="custom-popup">
@@ -997,7 +1056,7 @@ async function reloadRestrictedZones(escenario = "moderado") {
                     fillOpacity: 0.22,
                     dashArray: '5, 5'
                 },
-                onEachFeature: function(feature, layer) {
+                onEachFeature: function (feature, layer) {
                     const props = feature.properties;
                     layer.bindPopup(`
                         <div class="custom-popup">
@@ -1019,18 +1078,28 @@ async function reloadRestrictedZones(escenario = "moderado") {
 // Filter and redraw hospitals on map based on clinical specialty
 function filterHospitalesBySpecialty(specialty) {
     if (!rawHospitalesData) return;
-    
+
+    // Calculate total beds dynamically
+    let totalBeds = 0;
+    rawHospitalesData.features.forEach(h => {
+        totalBeds += Number(h.properties.camas || 0);
+    });
+    const legendBedsEl = document.getElementById('legend-total-camas');
+    if (legendBedsEl) {
+        legendBedsEl.textContent = totalBeds;
+    }
+
     layers.coberturaHospitalaria.clearLayers();
-    
+
     L.geoJSON(rawHospitalesData, {
-        pointToLayer: function(feature, latlng) {
+        pointToLayer: function (feature, latlng) {
             const props = feature.properties;
             const specs = props.especialidades || [];
-            
+
             if (specialty && !specs.includes(specialty)) {
                 return null;
             }
-            
+
             const htmlIcon = L.divIcon({
                 html: `<div class="hospital-marker-icon"><i class="fa-solid fa-square-h"></i></div>`,
                 className: 'hospital-marker-container',
@@ -1038,16 +1107,36 @@ function filterHospitalesBySpecialty(specialty) {
             });
             return L.marker(latlng, { icon: htmlIcon });
         },
-        onEachFeature: function(feature, layer) {
+        onEachFeature: function (feature, layer) {
             if (!layer) return;
-            
+
             const props = feature.properties;
             const nivel = Number(props.nivel || 0);
             const coverage = getHospitalCoverageConfig(nivel);
             const coordinates = feature.geometry.coordinates;
             const specs = props.especialidades || [];
-            
+
             const specsHtml = specs.map(s => `<span class="badge" style="font-size:9px; background:rgba(16, 185, 129, 0.12); color:var(--accent-primary); padding:2px 6px; border-radius:4px; margin-right:4px; display:inline-block; margin-top:4px;">${s}</span>`).join(' ');
+
+            // Emergency beds capacity status progress bar
+            const em_totales = Number(props.camas_emergencia_totales || 0);
+            const em_disponibles = Number(props.camas_emergencia_disponibles || 0);
+            const pct = em_totales > 0 ? (em_disponibles / em_totales) * 100 : 0;
+            let barColor = "green";
+            if (pct <= 10) barColor = "red";
+            else if (pct <= 30) barColor = "orange";
+
+            const emergencyProgressHtml = em_totales > 0 ? `
+                <div class="emergency-popup-progress">
+                    <div style="display:flex; justify-content:space-between; align-items:center; font-size:10px; color:var(--text-secondary);">
+                        <span>Urgencias (Camas libres):</span>
+                        <strong style="color: ${barColor === 'red' ? '#EF4444' : barColor === 'orange' ? '#F59E0B' : '#10B981'}; font-weight: 700;">${em_disponibles} / ${em_totales}</strong>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar-fill ${barColor}" style="width: ${pct}%;"></div>
+                    </div>
+                </div>
+            ` : '';
 
             const popupContent = `
                 <div class="custom-popup">
@@ -1056,9 +1145,10 @@ function filterHospitalesBySpecialty(specialty) {
                     <p class="popup-detail"><strong>Capacidad:</strong> ${props.camas} camas</p>
                     <p class="popup-detail"><strong>Tipo:</strong> ${props.tipo}</p>
                     <p class="popup-detail"><strong>Cobertura:</strong> ${coverage.label} (${coverage.radius / 1000} km)</p>
-                    <div style="margin-top: 8px; border-top: 1px solid var(--border-card); padding-top: 6px;">
+                    <div style="margin-top: 8px; border-top: 1px solid var(--border-card); padding-top: 6px; font-size: 11px;">
                         <strong>Especialidades:</strong><br>${specsHtml || 'Ninguna'}
                     </div>
+                    ${emergencyProgressHtml}
                 </div>
             `;
             layer.bindPopup(popupContent, { className: 'custom-popup' });
@@ -1079,6 +1169,9 @@ function filterHospitalesBySpecialty(specialty) {
             layers.coberturaHospitalaria.addLayer(layer);
         }
     });
+
+    // Automatically update the live emergencies dashboard list
+    updateEmergencyStatusList();
 }
 
 // Side-by-side comparative table renderer for candidate/custom lands
@@ -1088,12 +1181,12 @@ function updateComparisonPanel() {
         panel.classList.add('hidden');
         return;
     }
-    
+
     panel.classList.remove('hidden');
-    
+
     const headersRow = document.getElementById('comparison-headers');
     headersRow.innerHTML = '<th>Criterio / Terreno</th>';
-    
+
     comparisonList.forEach((terrain, index) => {
         headersRow.innerHTML += `
             <th>
@@ -1104,7 +1197,7 @@ function updateComparisonPanel() {
             </th>
         `;
     });
-    
+
     const rows = [
         { label: "Aptitud (IAT)", key: "iat", isMCDA: true },
         { label: "Predicción IA (IAT)", key: "iat_predicho", isML: true },
@@ -1117,36 +1210,36 @@ function updateComparisonPanel() {
         { label: "Distancia a Hospitales (m)", key: "dist_hospitales_m", isEval: true },
         { label: "Servicios Básicos", key: "servicios", isCustom: true }
     ];
-    
+
     const rowsContainer = document.getElementById('comparison-rows');
     rowsContainer.innerHTML = '';
-    
+
     rows.forEach(row => {
         let rowHtml = `<tr><td>${row.label}</td>`;
-        
+
         comparisonList.forEach(terrain => {
             const props = terrain.properties;
             const evalRes = props.evaluacion || {};
             let value = "--";
-            
+
             if (row.isMCDA) {
                 if (row.key === "iat") {
                     value = `<strong style="color: ${getTerrainColor(evalRes.iat, evalRes.apto)}; font-size: 13px;">${evalRes.iat ? evalRes.iat.toFixed(1) : '0.0'}</strong>`;
                 } else if (row.key === "apto") {
-                    value = evalRes.apto 
-                        ? `<span style="color:var(--accent-primary); font-weight:600;"><i class="fa-solid fa-circle-check"></i> APTO</span>` 
+                    value = evalRes.apto
+                        ? `<span style="color:var(--accent-primary); font-weight:600;"><i class="fa-solid fa-circle-check"></i> APTO</span>`
                         : `<span style="color:var(--accent-danger); font-weight:600;"><i class="fa-solid fa-circle-xmark"></i> NO APTO</span>`;
                 }
             } else if (row.isML) {
                 const mlRes = evalRes.ml_prediccion || {};
                 if (row.key === "iat_predicho") {
-                    value = mlRes.iat_predicho !== undefined 
-                        ? `<strong style="font-size:12px; color:var(--text-primary);">${mlRes.iat_predicho.toFixed(1)}</strong>` 
+                    value = mlRes.iat_predicho !== undefined
+                        ? `<strong style="font-size:12px; color:var(--text-primary);">${mlRes.iat_predicho.toFixed(1)}</strong>`
                         : "N/A";
                 } else if (row.key === "apto_predicho") {
                     if (mlRes.apto_predicho !== undefined) {
-                        value = mlRes.apto_predicho 
-                            ? `<span style="color:var(--accent-primary); font-weight:600;">APTO</span>` 
+                        value = mlRes.apto_predicho
+                            ? `<span style="color:var(--accent-primary); font-weight:600;">APTO</span>`
                             : `<span style="color:var(--accent-danger); font-weight:600;">NO APTO</span>`;
                     } else {
                         value = "N/A";
@@ -1173,20 +1266,108 @@ function updateComparisonPanel() {
                     value = servs.length > 0 ? servs.join(', ') : "Ninguno";
                 }
             }
-            
+
             rowHtml += `<td>${value}</td>`;
         });
-        
+
         rowHtml += `</tr>`;
         rowsContainer.innerHTML += rowHtml;
     });
-    
+
     const removeBtns = panel.querySelectorAll('.btn-remove-compare');
     removeBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', function () {
             const index = parseInt(this.getAttribute('data-index'));
             comparisonList.splice(index, 1);
             updateComparisonPanel();
         });
     });
 }
+
+// Update the sidebar emergency status card widget list
+function updateEmergencyStatusList() {
+    if (!rawHospitalesData) return;
+
+    let totalAvailable = 0;
+    let totalCapacity = 0;
+    const items = [];
+
+    rawHospitalesData.features.forEach(feature => {
+        const props = feature.properties;
+        const totales = Number(props.camas_emergencia_totales || 0);
+        if (totales === 0) return;
+        const disponibles = Number(props.camas_emergencia_disponibles || 0);
+
+        totalAvailable += disponibles;
+        totalCapacity += totales;
+
+        const pct = (disponibles / totales) * 100;
+        let badgeColor = "green";
+        let statusText = "Alta Disp.";
+        if (pct <= 10) {
+            badgeColor = "red";
+            statusText = "Saturado";
+        } else if (pct <= 30) {
+            badgeColor = "orange";
+            statusText = "Ocupado";
+        }
+
+        items.push({
+            id: props.id,
+            nombre: props.nombre,
+            totales: totales,
+            disponibles: disponibles,
+            badgeColor: badgeColor,
+            statusText: statusText
+        });
+    });
+
+    // Sort items: critical first
+    items.sort((a, b) => {
+        const pctA = (a.disponibles / a.totales);
+        const pctB = (b.disponibles / b.totales);
+        return pctA - pctB;
+    });
+
+    // Update global counter
+    const counterEl = document.getElementById('emergency-total-available');
+    if (counterEl) {
+        counterEl.textContent = `${totalAvailable} / ${totalCapacity} camas`;
+    }
+
+    // Render list
+    const container = document.getElementById('emergency-hospitals-list');
+    if (container) {
+        container.innerHTML = '';
+        items.forEach(item => {
+            container.innerHTML += `
+                <div class="emergency-row" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="zoomToHospital(${item.id})">
+                    <span class="emergency-name" title="${item.nombre}">${item.nombre}</span>
+                    <div class="emergency-beds-status" style="display: flex; align-items: center; gap: 6px;">
+                        <span style="font-weight: 600; color: var(--text-primary); font-size: 10px;">${item.disponibles}/${item.totales}</span>
+                        <span class="emergency-badge ${item.badgeColor}">${item.statusText}</span>
+                    </div>
+                </div>
+            `;
+        });
+    }
+}
+
+// Global helper to zoom to a specific hospital and open its Leaflet popup
+window.zoomToHospital = function (id) {
+    if (!rawHospitalesData || !map) return;
+    const hospital = rawHospitalesData.features.find(f => f.properties.id === id);
+    if (hospital) {
+        const coords = hospital.geometry.coordinates;
+        map.setView([coords[1], coords[0]], 16);
+
+        layers.coberturaHospitalaria.eachLayer(layer => {
+            if (layer instanceof L.Marker) {
+                const latlng = layer.getLatLng();
+                if (Math.abs(latlng.lat - coords[1]) < 0.0001 && Math.abs(latlng.lng - coords[0]) < 0.0001) {
+                    layer.openPopup();
+                }
+            }
+        });
+    }
+};

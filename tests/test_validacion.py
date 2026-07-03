@@ -20,7 +20,7 @@ class TestHospitalValidation(unittest.TestCase):
         self.assertIn("con_errores", result)
         self.assertIn("hospitales", result)
         self.assertIn("duplicados", result)
-        self.assertEqual(result["total"], 7)
+        self.assertEqual(result["total"], 8)
 
     def test_cada_hospital_tiene_campos_esperados(self):
         result = self.validator.validar_todos()
@@ -87,7 +87,7 @@ class TestHospitalValidation(unittest.TestCase):
         data = response.json()
         self.assertIn("total", data)
         self.assertIn("hospitales", data)
-        self.assertEqual(data["total"], 7)
+        self.assertEqual(data["total"], 8)
 
     def test_solo_un_hospital_fuera_de_distrito(self):
         result = self.validator.validar_todos()

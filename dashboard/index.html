@@ -144,6 +144,30 @@
                     </div>
                 </section>
 
+                <!-- Section 2.7: Monitoreo de Emergencias en Vivo -->
+                <section class="card emergency-card">
+                    <h2 class="card-title" style="color: #EF4444;"><i class="fa-solid fa-truck-medical"></i> Emergencias en Vivo</h2>
+                    <p class="card-desc">Monitoreo de disponibilidad de camas críticas y telemetría de ambulancias.</p>
+                    
+                    <div class="emergency-summary" style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px;">
+                        <div class="emergency-stat-container" style="display: flex; justify-content: space-between; align-items: center; background: rgba(239, 68, 68, 0.05); padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.15);">
+                            <span style="font-size: 11px; color: var(--text-secondary);">Disponibilidad Total:</span>
+                            <span id="emergency-total-available" style="font-size: 14px; font-weight: 700; color: #EF4444;">--</span>
+                        </div>
+                        
+                        <div class="emergency-list-container">
+                            <h4 style="font-size: 11px; margin: 8px 0 4px 0; color: var(--text-primary); font-weight: 600;">Estado de Ocupación:</h4>
+                            <div id="emergency-hospitals-list" style="display: flex; flex-direction: column; gap: 6px; max-height: 140px; overflow-y: auto; padding-right: 4px;">
+                                <!-- Dynamic hospital emergency state rows go here -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button id="btn-simulate-emergency" class="btn btn-secondary btn-full" style="margin-top: 12px; border-color: rgba(239, 68, 68, 0.3); color: #EF4444;">
+                        <i class="fa-solid fa-wifi"></i> Simular Telemetría (Live)
+                    </button>
+                </section>
+
                 <!-- Section 3: Custom Terrain Options -->
                 <section class="card options-card">
                     <h2 class="card-title"><i class="fa-solid fa-map-pin"></i> Parámetros de Terreno Nuevo</h2>
@@ -283,7 +307,7 @@
                     <div class="legend-item"><span class="legend-color rejected"></span><span>No Recomendable / Restringido (<60)</span></div>
                     <hr class="legend-divider">
                     <div class="legend-item"><span class="legend-icon hosp"></span><span>Hospital Existente</span></div>
-                    <div class="legend-item"><span class="legend-icon bed"></span><span>Total Camas: 920</span></div>
+                    <div class="legend-item"><span class="legend-icon bed"></span><span>Total Camas: <span id="legend-total-camas">--</span></span></div>
                     <div class="legend-item"><span class="legend-color coverage-3"></span><span>Cobertura 3er Nivel (Red Vial)</span></div>
                     <div class="legend-item"><span class="legend-color coverage-2"></span><span>Cobertura 2do Nivel (Red Vial)</span></div>
                     <div class="legend-item"><span class="legend-color coverage-uncovered"></span><span>Áreas Descubiertas</span></div>
@@ -303,16 +327,16 @@
                 <span class="map-title"><i class="fa-solid fa-map-location-dot"></i> Sucre - Bolivia: Mapa de Aptitud Territorial</span>
                 <div class="layer-toggles">
                     <button id="toggle-distritos" class="btn-toggle active">Distritos</button>
-                    <button id="toggle-topografia" class="btn-toggle active">Curvas de Nivel</button>
-                    <button id="toggle-vias" class="btn-toggle active">Red Vial</button>
+                    <button id="toggle-topografia" class="btn-toggle">Curvas de Nivel</button>
+                    <button id="toggle-vias" class="btn-toggle">Red Vial</button>
                     <button id="toggle-cobertura-hospitalaria" class="btn-toggle">Cobertura Hospitalaria</button>
-                    <button id="toggle-crecimiento" class="btn-toggle active">Crecimiento Proyectado</button>
+                    <button id="toggle-crecimiento" class="btn-toggle">Crecimiento Proyectado</button>
                     <select id="select-escenario" class="select-scenario-dropdown" title="Escenario de Crecimiento" style="padding: 4px 8px; border-radius: 6px; background: var(--bg-sidebar); color: var(--text-primary); border: 1px solid var(--border-card); font-family: var(--font-body); font-size: 11px; outline: none; cursor: pointer; transition: var(--transition-smooth); margin-right: 6px;">
                         <option value="conservador">Escenario Conservador (<10%)</option>
                         <option value="moderado" selected>Escenario Moderado (<15%)</option>
                         <option value="expansivo">Escenario Expansivo (<25%)</option>
                     </select>
-                    <button id="toggle-restringidas" class="btn-toggle active">Zonas Restringidas</button>
+                    <button id="toggle-restringidas" class="btn-toggle">Zonas Restringidas</button>
                     <button id="btn-theme-toggle" class="btn-toggle" title="Cambiar Tema"><i class="fa-solid fa-sun"></i></button>
                 </div>
             </div>

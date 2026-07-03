@@ -12,12 +12,21 @@
       "type": "Feature",
       "properties": {
         "id": 1,
-        "nombre": "Hospital Santa Bárbara",
+        "nombre": "Hospital Santa B\u00e1rbara",
         "nivel": 3,
         "camas": 91,
         "distrito": "D-1",
-        "tipo": "Público General",
-        "especialidades": ["Medicina General", "Pediatría", "Cirugía General", "Traumatología", "Cardiología", "Emergencias"]
+        "tipo": "P\u00fablico General",
+        "especialidades": [
+          "Medicina General",
+          "Pediatr\u00eda",
+          "Cirug\u00eda General",
+          "Traumatolog\u00eda",
+          "Cardiolog\u00eda",
+          "Emergencias"
+        ],
+        "camas_emergencia_totales": 25,
+        "camas_emergencia_disponibles": 2
       },
       "geometry": {
         "type": "Point",
@@ -35,8 +44,17 @@
         "nivel": 3,
         "camas": 100,
         "distrito": "D-3",
-        "tipo": "Público General",
-        "especialidades": ["Medicina General", "Pediatría", "Medicina Interna", "Ginecología", "Obstetricia", "Cirugía General"]
+        "tipo": "P\u00fablico General",
+        "especialidades": [
+          "Medicina General",
+          "Pediatr\u00eda",
+          "Medicina Interna",
+          "Ginecolog\u00eda",
+          "Obstetricia",
+          "Cirug\u00eda General"
+        ],
+        "camas_emergencia_totales": 20,
+        "camas_emergencia_disponibles": 14
       },
       "geometry": {
         "type": "Point",
@@ -55,7 +73,15 @@
         "camas": 76,
         "distrito": "D-4",
         "tipo": "Seguridad Social (CNS)",
-        "especialidades": ["Pediatría", "Ginecología", "Obstetricia", "Cardiología", "Medicina General"]
+        "especialidades": [
+          "Pediatr\u00eda",
+          "Ginecolog\u00eda",
+          "Obstetricia",
+          "Cardiolog\u00eda",
+          "Medicina General"
+        ],
+        "camas_emergencia_totales": 15,
+        "camas_emergencia_disponibles": 12
       },
       "geometry": {
         "type": "Point",
@@ -69,18 +95,24 @@
       "type": "Feature",
       "properties": {
         "id": 4,
-        "nombre": "Instituto de Gastroenterología Boliviano-Japonés",
+        "nombre": "Instituto de Gastroenterolog\u00eda Boliviano-Japon\u00e9s",
         "nivel": 3,
         "camas": 50,
         "distrito": "D-1",
-        "tipo": "Público Especializado",
-        "especialidades": ["Gastroenterología", "Endoscopia", "Cirugía Digestiva"]
+        "tipo": "P\u00fablico Especializado",
+        "especialidades": [
+          "Gastroenterolog\u00eda",
+          "Endoscopia",
+          "Cirug\u00eda Digestiva"
+        ],
+        "camas_emergencia_totales": 10,
+        "camas_emergencia_disponibles": 5
       },
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -68.1195585,
-          -16.5078224
+          -65.26747,
+          -19.04533
         ]
       }
     },
@@ -88,12 +120,18 @@
       "type": "Feature",
       "properties": {
         "id": 5,
-        "nombre": "Hospital Gíneco-Obstétrico Jaime Sánchez",
+        "nombre": "Hospital G\u00edneco-Obst\u00e9trico Jaime S\u00e1nchez",
         "nivel": 3,
         "camas": 90,
         "distrito": "D-4",
-        "tipo": "Público Especializado",
-        "especialidades": ["Ginecología", "Obstetricia", "Neonatología"]
+        "tipo": "P\u00fablico Especializado",
+        "especialidades": [
+          "Ginecolog\u00eda",
+          "Obstetricia",
+          "Neonatolog\u00eda"
+        ],
+        "camas_emergencia_totales": 12,
+        "camas_emergencia_disponibles": 12
       },
       "geometry": {
         "type": "Point",
@@ -111,8 +149,14 @@
         "nivel": 2,
         "camas": 20,
         "distrito": "D-3",
-        "tipo": "Público General",
-        "especialidades": ["Medicina General", "Pediatría", "Odontología"]
+        "tipo": "P\u00fablico General",
+        "especialidades": [
+          "Medicina General",
+          "Pediatr\u00eda",
+          "Odontolog\u00eda"
+        ],
+        "camas_emergencia_totales": 6,
+        "camas_emergencia_disponibles": 3
       },
       "geometry": {
         "type": "Point",
@@ -126,18 +170,49 @@
       "type": "Feature",
       "properties": {
         "id": 7,
-        "nombre": "Clínica Ángeles",
+        "nombre": "Cl\u00ednica \u00c1ngeles",
         "nivel": 3,
         "camas": 47,
         "distrito": "D-4",
-        "tipo": "Público General",
-        "especialidades": ["Medicina General", "Pediatría", "Traumatología"]
+        "tipo": "P\u00fablico General",
+        "especialidades": [
+          "Medicina General",
+          "Pediatr\u00eda",
+          "Traumatolog\u00eda"
+        ],
+        "camas_emergencia_totales": 8,
+        "camas_emergencia_disponibles": 8
       },
       "geometry": {
         "type": "Point",
         "coordinates": [
           -65.2661732,
           -19.0570146
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 8,
+        "nombre": "Hospital Muicipal AZARI",
+        "nivel": 1,
+        "camas": 6,
+        "distrito": "D-5",
+        "tipo": "P\u00f9blico General",
+        "especialidades": [
+          "Medicina General",
+          "Pediatr\u00eda",
+          "Enfermeria"
+        ],
+        "camas_emergencia_totales": 6,
+        "camas_emergencia_disponibles": 2
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -65.237996,
+          -19.0822872
         ]
       }
     }
