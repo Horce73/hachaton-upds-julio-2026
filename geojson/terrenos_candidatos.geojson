@@ -1,0 +1,270 @@
+{
+  "type": "FeatureCollection",
+  "name": "terrenos_candidatos_sucre",
+  "crs": {
+    "type": "name",
+    "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+    }
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1,
+        "nombre": "Terreno Norte - Lajastambo",
+        "zona": "Lajastambo Alto (D-3)",
+        "agua": true,
+        "electricidad": true,
+        "alcantarillado": true,
+        "uso_suelo": "Residencial de Expansión",
+        "area_m2": 12500,
+        "patrimonial": false,
+        "industrial_incompatible": false,
+        "cerca_rio": false
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -65.289,
+              -19.017
+            ],
+            [
+              -65.2875,
+              -19.017
+            ],
+            [
+              -65.2875,
+              -19.018
+            ],
+            [
+              -65.289,
+              -19.018
+            ],
+            [
+              -65.289,
+              -19.017
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 2,
+        "nombre": "Terreno Sur - cochabambita",
+        "zona": "Barrio Cochabambita (D-5)",
+        "agua": true,
+        "electricidad": true,
+        "alcantarillado": false,
+        "uso_suelo": "Expansión Urbana",
+        "area_m2": 15000,
+        "patrimonial": false,
+        "industrial_incompatible": false,
+        "cerca_rio": false
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -65.239,
+              -19.069
+            ],
+            [
+              -65.237,
+              -19.069
+            ],
+            [
+              -65.237,
+              -19.07
+            ],
+            [
+              -65.239,
+              -19.07
+            ],
+            [
+              -65.239,
+              -19.069
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 3,
+        "nombre": "Terreno Oeste - Zona Pendiente",
+        "zona": "Cerro Sica Sica (D-4)",
+        "agua": true,
+        "electricidad": true,
+        "alcantarillado": true,
+        "uso_suelo": "Residencial",
+        "area_m2": 8200,
+        "patrimonial": false,
+        "industrial_incompatible": false,
+        "cerca_rio": false
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -65.276,
+              -19.059
+            ],
+            [
+              -65.2745,
+              -19.059
+            ],
+            [
+              -65.2745,
+              -19.06
+            ],
+            [
+              -65.276,
+              -19.06
+            ],
+            [
+              -65.276,
+              -19.059
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 4,
+        "nombre": "Terreno Central - Recoleta",
+        "zona": "La Recoleta (D-1)",
+        "agua": true,
+        "electricidad": true,
+        "alcantarillado": true,
+        "uso_suelo": "Patrimonial Histórico",
+        "area_m2": 6000,
+        "patrimonial": true,
+        "industrial_incompatible": false,
+        "cerca_rio": false
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -65.261,
+              -19.0465
+            ],
+            [
+              -65.2595,
+              -19.0465
+            ],
+            [
+              -65.2595,
+              -19.0475
+            ],
+            [
+              -65.261,
+              -19.0475
+            ],
+            [
+              -65.261,
+              -19.0465
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 5,
+        "nombre": "Terreno Este - Zona Río Quirpinchaca",
+        "zona": "Cerca Río Quirpinchaca (D-2)",
+        "agua": true,
+        "electricidad": true,
+        "alcantarillado": true,
+        "uso_suelo": "Residencial Mixto",
+        "area_m2": 9500,
+        "patrimonial": false,
+        "industrial_incompatible": false,
+        "cerca_rio": true
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -65.249,
+              -19.034
+            ],
+            [
+              -65.2475,
+              -19.034
+            ],
+            [
+              -65.2475,
+              -19.035
+            ],
+            [
+              -65.249,
+              -19.035
+            ],
+            [
+              -65.249,
+              -19.034
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 6,
+        "nombre": "Terreno Norte - Excelente Aptitud",
+        "zona": "Barrio Lindo (D-3)",
+        "agua": true,
+        "electricidad": true,
+        "alcantarillado": true,
+        "uso_suelo": "Residencial de Expansión",
+        "area_m2": 18000,
+        "patrimonial": false,
+        "industrial_incompatible": false,
+        "cerca_rio": false
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -65.286,
+              -19.021
+            ],
+            [
+              -65.284,
+              -19.021
+            ],
+            [
+              -65.284,
+              -19.0225
+            ],
+            [
+              -65.286,
+              -19.0225
+            ],
+            [
+              -65.286,
+              -19.021
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

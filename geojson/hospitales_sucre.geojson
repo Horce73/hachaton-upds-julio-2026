@@ -1,0 +1,145 @@
+{
+  "type": "FeatureCollection",
+  "name": "hospitales_existentes_sucre",
+  "crs": {
+    "type": "name",
+    "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+    }
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1,
+        "nombre": "Hospital Santa Bárbara",
+        "nivel": 3,
+        "camas": 91,
+        "distrito": "D-1",
+        "tipo": "Público General",
+        "especialidades": ["Medicina General", "Pediatría", "Cirugía General", "Traumatología", "Cardiología", "Emergencias"]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -65.26164,
+          -19.04478
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 2,
+        "nombre": "Hospital Tercer Nivel Sucre CNS",
+        "nivel": 3,
+        "camas": 100,
+        "distrito": "D-3",
+        "tipo": "Público General",
+        "especialidades": ["Medicina General", "Pediatría", "Medicina Interna", "Ginecología", "Obstetricia", "Cirugía General"]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -65.3095961,
+          -19.0063536
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 3,
+        "nombre": "Hospital Jaime Mendoza",
+        "nivel": 3,
+        "camas": 76,
+        "distrito": "D-4",
+        "tipo": "Seguridad Social (CNS)",
+        "especialidades": ["Pediatría", "Ginecología", "Obstetricia", "Cardiología", "Medicina General"]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -65.2686336,
+          -19.0467413
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 4,
+        "nombre": "Instituto de Gastroenterología Boliviano-Japonés",
+        "nivel": 3,
+        "camas": 50,
+        "distrito": "D-1",
+        "tipo": "Público Especializado",
+        "especialidades": ["Gastroenterología", "Endoscopia", "Cirugía Digestiva"]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -68.1195585,
+          -16.5078224
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 5,
+        "nombre": "Hospital Gíneco-Obstétrico Jaime Sánchez",
+        "nivel": 3,
+        "camas": 90,
+        "distrito": "D-4",
+        "tipo": "Público Especializado",
+        "especialidades": ["Ginecología", "Obstetricia", "Neonatología"]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -65.2709319,
+          -19.0453837
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 6,
+        "nombre": "Hospital San Pedro Claver",
+        "nivel": 2,
+        "camas": 20,
+        "distrito": "D-3",
+        "tipo": "Público General",
+        "especialidades": ["Medicina General", "Pediatría", "Odontología"]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -65.3064757,
+          -19.0078085
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 7,
+        "nombre": "Clínica Ángeles",
+        "nivel": 3,
+        "camas": 47,
+        "distrito": "D-4",
+        "tipo": "Público General",
+        "especialidades": ["Medicina General", "Pediatría", "Traumatología"]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -65.2661732,
+          -19.0570146
+        ]
+      }
+    }
+  ]
+}
